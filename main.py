@@ -3,10 +3,10 @@ import sys
 from dotenv import load_dotenv
 from google import genai
 from google.genai import types
-from functions.get_files_info import schema_get_files_info
-from functions.get_file_content import schema_get_file_content
-from functions.run_python_file import schema_run_python_file
-from functions.write_file import schema_write_file
+from functions.get_files_info import *
+from functions.get_file_content import *
+from functions.run_python_file import *
+from functions.write_file import *
 
 system_prompt = """
 You are a helpful AI coding agent.
@@ -44,6 +44,49 @@ def inputchecker(input):
                 input_string += input[i] + " "
         return input_string, verbose
 
+def call_function(function_call_part, verbose=False):
+    if verbose == True:
+        print(f"Calling function: {function_call_part.name}({function_call_part.args})")
+    else:
+        print(f" - Calling function: {function_call_part.name}")
+
+    FUNCTIONS = {
+    "get_files_info": get_files_info,
+    "get_file_content": get_file_content,
+    "run_python_file": run_python_file,
+    "write_file": write_file,
+    }
+
+    args = function_call_part.args
+    function = function_call_part.name
+
+    callable_fn = FUNCTIONS.get(function)
+
+    if callable_fn == None:
+        return types.Content(
+            role="tool",
+            parts=[
+                types.Part.from_function_response(
+                    name=function,
+                    response={"error": f"Unknown function: {function}"},
+                )
+            ],
+        )
+
+    kwargs = args.copy()
+    kwargs["working_directory"] = "./calculator"
+    answer = callable_fn(**kwargs)
+
+    return types.Content(
+        role="tool",
+        parts=[
+            types.Part.from_function_response(
+                name=function,
+                response={"result": answer},
+            )
+        ],
+    )
+
 def ask_gemini(messages):
     load_dotenv("gem.env")
     api_key = os.environ.get("GEMINI_API_KEY")
@@ -73,7 +116,17 @@ def main():
 
     if len(response.function_calls) >= 1:
         for call in response.function_calls:
-            print(f"Calling function: {call.name}({call.args})")
+
+            function_response = call_function(call, verbose)
+
+            if not function_response.parts or not getattr(function_response.parts[0], "function_response", None):
+                raise Exception(f"Fatal exception for Function: {call.name} ")
+            
+            resp = function_response.parts[0].function_response.response
+            out = resp.get("result") if isinstance(resp, dict) else resp
+            
+            print(f"-> {out}")
+
     else:
         print(response.text)
     
