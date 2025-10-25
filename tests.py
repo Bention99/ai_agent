@@ -1,6 +1,7 @@
 from functions.get_files_info import *
 from functions.get_files_content import *
 from functions.write_file import *
+from functions.run_python_file import *
 
 def test():
 
@@ -42,13 +43,33 @@ def test():
 
     # write_file tests
 
-    result = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
+    '''result = write_file("calculator", "lorem.txt", "wait, this isn't lorem ipsum")
     print(result)
 
     result = write_file("calculator", "pkg/morelorem.txt", "lorem ipsum dolor sit amet")
     print(result)
 
     result = write_file("calculator", "/tmp/temp.txt", "this should not be allowed")
+    print(result)'''
+
+    # run_python_file tests
+
+    result = run_python_file("calculator", "main.py")
+    print(result)
+
+    result = run_python_file("calculator", "main.py", ["3 + 5"])
+    print(result)
+
+    result = run_python_file("calculator", "tests.py")
+    print(result)
+
+    result = run_python_file("calculator", "../main.py")
+    print(result)
+
+    result = run_python_file("calculator", "nonexistent.py")
+    print(result)
+
+    result = run_python_file("calculator", "lorem.txt")
     print(result)
 
 
