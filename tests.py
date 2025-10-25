@@ -1,5 +1,5 @@
 from functions.get_files_info import *
-from functions.get_files_content import *
+from functions.get_file_content import *
 from functions.write_file import *
 from functions.run_python_file import *
 
@@ -24,21 +24,21 @@ def test():
     print("Result for '../' directory:")
     print(result)'''
 
-    # get_files_content tests
+    # get_file_content tests
 
-    '''result = get_files_content("calculator", "lorem.txt")
+    '''result = get_file_content("calculator", "lorem.txt")
     print(result)'''
 
-    '''result = get_files_content("calculator", "main.py")
+    '''result = get_file_content("calculator", "main.py")
     print(result)
 
-    result = get_files_content("calculator", "pkg/calculator.py")
+    result = get_file_content("calculator", "pkg/calculator.py")
     print(result)
 
-    result = get_files_content("calculator", "/bin/cat")
+    result = get_file_content("calculator", "/bin/cat")
     print(result)
 
-    result = get_files_content("calculator", "pkg/does_not_exist.py")
+    result = get_file_content("calculator", "pkg/does_not_exist.py")
     print(result)'''
 
     # write_file tests
