@@ -31,7 +31,7 @@ def get_files_info(working_directory, directory="."):
             is_dir = os.path.isdir(filepath)
             file_size = os.path.getsize(filepath)
             files_info.append(
-                f"- {filename}: file_size={file_size} bytes, is_dir={is_dir}"
+                f"- {filename}: file_size={file_size} bytes, is_dir={is_dir}, directory={filepath}"
             )
         return "\n".join(files_info)
     except Exception as e:
