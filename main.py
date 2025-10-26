@@ -106,29 +106,62 @@ def main():
     types.Content(role="user", parts=[types.Part(text=prompt)]),
     ]
 
-    response = ask_gemini(messages)
-    usage = response.usage_metadata
+    for i in range(1, 21):
+        try:
+            response = ask_gemini(messages)
+            usage = response.usage_metadata
 
-    if verbose == True:
-        print(f"User prompt: {prompt}")
-        print(f"Prompt tokens: {usage.prompt_token_count}")
-        print(f"Response tokens: {usage.candidates_token_count}")
+            if verbose == True:
+                print(f"User prompt: {prompt}")
+                print(f"Prompt tokens: {usage.prompt_token_count}")
+                print(f"Response tokens: {usage.candidates_token_count}")
 
-    if len(response.function_calls) >= 1:
-        for call in response.function_calls:
+            if response.candidates:
+                for cand in response.candidates:
+                    messages.append(cand.content)
 
-            function_response = call_function(call, verbose)
+            calls = list(getattr(response, "function_calls", []) or [])
+            if not calls and response.candidates:
+                for cand in response.candidates:
+                    for p in cand.content.parts:
+                        fc = getattr(p, "function_call", None)
+                        if fc:
+                            calls.append(fc)
 
-            if not function_response.parts or not getattr(function_response.parts[0], "function_response", None):
-                raise Exception(f"Fatal exception for Function: {call.name} ")
-            
-            resp = function_response.parts[0].function_response.response
-            out = resp.get("result") if isinstance(resp, dict) else resp
-            
-            print(f"-> {out}")
+            if calls:
+                for call in calls:
+                    function_response = call_function(call, verbose)
+                    tool_msg = types.Content(role="user", parts=function_response.parts)
+                    messages.append(tool_msg)
+                continue
 
-    else:
-        print(response.text)
+            if response.text:
+                print(response.text)
+                break
+                
+            else:
+                for call in response.function_calls:
+
+                    function_response = call_function(call, verbose)
+                    
+                    tool_msg = types.Content(
+                        role="user",
+                        parts=function_response.parts,
+                    )
+                    messages.append(tool_msg)
+
+                    if not function_response.parts or not getattr(function_response.parts[0], "function_response", None):
+                        raise Exception(f"Fatal exception for Function: {call.name} ")
+                    
+                    resp = function_response.parts[0].function_response.response
+                    out = resp.get("result") if isinstance(resp, dict) else resp
+                    
+                    print(f"-> {out}")
+
+        except Exception as e:
+            if verbose:
+                print(f"Error: {e}")
+            break
     
 
     
